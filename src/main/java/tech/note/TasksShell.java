@@ -57,7 +57,7 @@ public class TasksShell {
             System.out.print(" " + listName + " > ");
             String[] command = scan.nextLine().split(" ");
             switch (command[0]){
-                case "add" -> addTask(command);
+                case "new" -> addTask(command);
                 case "delete" -> deleteTask(command);
                 case "done", "undone" -> permuteTask(command);
                 case "modify" -> modifyTask(command);
@@ -83,7 +83,7 @@ public class TasksShell {
                 StringBuilder line = new StringBuilder();
                 if ((task.isDone() && !hide) || !task.isDone()) {
                     line.append(
-                            tasks.indexOf(task) + " " +
+                            formatIndex(tasks.indexOf(task)) + " " +
                                     (task.isDone() ? "[X]" : "[ ]") +
                                     " - " + task.getDescription() + "\n"
                     );
@@ -99,6 +99,21 @@ public class TasksShell {
                 System.out.println("You don't have unfinished tasks!");
             }
             System.out.println(tasksDone + " \n" + tasksNotDone);
+    }
+
+    /**
+     *
+     * @param index This is the index of the Task in the list of Tasks
+     * @return
+     */
+    private String formatIndex(int index){
+        StringBuilder whiteSpace = new StringBuilder();
+        whiteSpace.append(index);
+        while (whiteSpace.length() != Integer.toString(tasks.size()).length() + 1) {
+            whiteSpace.append(" ");
+        }
+
+        return whiteSpace.toString();
     }
 
     /**
