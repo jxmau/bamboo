@@ -23,6 +23,7 @@ Library used :
 | cd < listName >| Will enter in the shell of the list. |
 | ls | Will list all of the list saved. |
 | delete < listName > | Will delete a list. |
+| help | Will show the list of commands of the main Shell. |
 | exit | Will end the program. |
 
 <h3> Task Shell </h3>
@@ -31,7 +32,7 @@ Note : the tasks will have their index printed before them for you to select the
 
 | Command Line | Description |
 | --- | --- |
-| add < description > | Will add a new description. |
+| new < description > | Will create a new task. |
 | delete < index > | Will delete the task. |
 | done/undone < index > | Will permute the status of the task. |
 | modify < index > < description > |  Will modify the description of the task. |

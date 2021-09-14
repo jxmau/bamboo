@@ -24,15 +24,17 @@ public class BambooApplication {
             Scanner scanner = new Scanner(System.in);
             System.out.print( " Bamboo > ");
             String[] command = scanner.nextLine().split(" ");
+            System.out.println("\n\n");
             switch (command[0]) {
                 case "new" -> createList(command, scanner);
-                case "cd" -> enterTasksShell(command, scanner);
+                case "exp" -> enterTasksShell(command, scanner);
                 case "ls" -> FileController.getListOfNameOfList().forEach(System.out::println);
                 case "delete" -> deleteList(command);
+                case "help" -> printHelp();
                 case "exit" -> exit = true;
             }
 
-            System.out.println("\n\n");
+
         }
     }
 
@@ -78,5 +80,16 @@ public class BambooApplication {
         } else {
             System.out.println("Bamboo couldn't find the list.");
         }
+    }
+
+    private static void printHelp(){
+        System.out.println("""
+                new < listname > ............... Will create a new list of tasks.
+                exp < listname > ............... Will enter the shell of the list.
+                ls ............................. Will list of the lists of tasks.
+                delete < listname > ............ Will delete the list.
+                exit ........................... Will exit the app.
+                help ........................... Will print the help. ( Hi! )
+                """);
     }
 }
