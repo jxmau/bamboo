@@ -3,6 +3,7 @@ package tech.note;
 
 import tech.note.file.Checklist;
 import tech.note.file.FileController;
+import tech.note.shell.TasksShell;
 
 import java.util.Scanner;
 

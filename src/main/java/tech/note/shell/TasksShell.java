@@ -1,16 +1,15 @@
-package tech.note;
+package tech.note.shell;
 
 import tech.note.file.ListFile;
 import tech.note.model.MessageBuilder;
+import tech.note.model.MessageBuilderMessage;
 import tech.note.model.Task;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
-public class TasksShell {
+public class TasksShell extends BambooShell {
     /**
      * Name of the list of the task.
      * Used to get access to the list file.
@@ -37,10 +36,7 @@ public class TasksShell {
      * message consists of an error message or other.
      */
     private final MessageBuilder message = new MessageBuilder();
-    /**
-     * Lists hosting the tasks.
-     */
-    private List<Task> tasks;
+
 
 
 
@@ -49,7 +45,7 @@ public class TasksShell {
         this.listName = listName;
         this.scan = scan;
         this.listFile = new ListFile(this.listName);
-        this.tasks = listFile.getTasks();
+        super.taskExpanded = listFile.reload();
     }
 
     public void start(){
@@ -62,13 +58,14 @@ public class TasksShell {
                 case "new" -> addTask(command);
                 case "delete" -> deleteTask(command);
                 case "done", "undone" -> permuteTask(command);
+                case "exp" -> enterSubtaskShell(command);
                 case "modify" -> modifyTask(command);
                 case "exit" -> exit = true;
                 case "hide", "show" -> hide = !hide;
-                case "help" -> printHelp();
+                case "help" -> requestHelp();
                 case "clear" -> clear(command);
             }
-            listFile.saveList(tasks);
+            listFile.saveList(taskExpanded);
             System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
         }
 
@@ -81,10 +78,10 @@ public class TasksShell {
     private void printList(){
         StringBuilder tasksDone = new StringBuilder();
         StringBuilder tasksNotDone = new StringBuilder();
-            for (Task task : tasks) {
+            for (Task task : taskExpanded) {
                 StringBuilder line = new StringBuilder();
                 if (!task.isDone() || (task.isDone() && !hide)) {
-                    line.append(formatIndex(tasks.indexOf(task)))
+                    line.append(formatIndex(taskExpanded.indexOf(task)))
                             .append(" ")
                             .append(task.isDone() ? "[X]" : "[ ]")
                             .append(" - ")
@@ -98,26 +95,14 @@ public class TasksShell {
 
                 }
             }
-            if (tasksNotDone.isEmpty()) {
+            // No need to print if hide is false.
+            if (tasksNotDone.isEmpty() && hide) {
                 System.out.println("You don't have unfinished tasks!");
             }
             System.out.println(tasksDone + " \n" + tasksNotDone);
     }
 
-    /**
-     *
-     * @param index This is the index of the Task in the list of Tasks
-     * @return the index to task with a margin.
-     */
-    private String formatIndex(int index){
-        StringBuilder whiteSpace = new StringBuilder();
-        whiteSpace.append(index);
-        while (whiteSpace.length() != Integer.toString(tasks.size()).length() + 1) {
-            whiteSpace.append(" ");
-        }
 
-        return whiteSpace.toString();
-    }
 
     /**
      * Will print the message if not empty and reset it once printed.
@@ -135,23 +120,15 @@ public class TasksShell {
      */
     private void addTask(String[] command){
         if (command[1] != null) {
-            tasks.add(new Task(tasks.size(), concatenateWordsFromArray(command), false));
-            listFile.saveList(tasks);
-            tasks = listFile.getTasks();
+            taskExpanded.add(new Task(taskExpanded.size(), concatenateWordsFromArray(command, 1), false));
+            listFile.saveList(taskExpanded);
+            taskExpanded = listFile.reload();
         } else {
-            message.add("No task to be added were found in your command line.");
+            message.add(MessageBuilderMessage.NO_INDEX_FOUND.getMessage());
         }
     }
 
-    /**
-     * When modifying or permuting the status of a task, this method will
-     * check if the input reserved for the index is a numeric String.
-     * @param index String supposed to be the index.
-     * @return if index is only numeric.
-     */
-    private boolean checkIndexInCommand(String index){
-        return Pattern.compile("\\d+").matcher(index).matches() && Integer.parseInt(index) < tasks.size();
-    }
+
 
     /**
      * Will delete the task from the list.
@@ -160,9 +137,9 @@ public class TasksShell {
      */
     private void deleteTask(String[] command){
         if (checkIndexInCommand(command[1])) {
-            tasks.remove(Integer.parseInt(command[1]));
+            taskExpanded.remove(Integer.parseInt(command[1]));
         } else {
-            message.add("Bamboo couldn't find the index to the task to be deleted.");
+            message.add(MessageBuilderMessage.NO_INDEX_FOUND.getMessage());
         }
     }
 
@@ -172,10 +149,10 @@ public class TasksShell {
      */
     private void permuteTask(String[] command) {
         if (checkIndexInCommand(command[1])) {
-            Task task = tasks.get(Integer.parseInt(command[1]));
+            Task task = taskExpanded.get(Integer.parseInt(command[1]));
             task.setDone(!task.isDone());
         } else {
-            message.add("Bamboo couldn't find the index to the task to permute.");
+            message.add(MessageBuilderMessage.NO_INDEX_FOUND.getMessage());
         }
     }
 
@@ -189,18 +166,35 @@ public class TasksShell {
             if (command.length < 3 || command[2].equals("")) {
                 message.add("You cannot have a void task.");
             } else {
-                tasks.get(Integer.parseInt(index)).setDescription(concatenateWordsFromArray(command));
+                taskExpanded.get(Integer.parseInt(index)).setDescription(concatenateWordsFromArray(command, 2));
             }
         } else {
-            message.add("Bamboo couldn't find the index to the task to permute.");
+            message.add(MessageBuilderMessage.NO_INDEX_FOUND.getMessage());
         }
     }
 
+    private void enterSubtaskShell(String[] command) {
+        if (command.length == 1) {
+            message.add(MessageBuilderMessage.NO_INDEX_FOUND.getMessage());
+        } else if (!checkIndexInCommand(command[1])){
+            System.out.println("List size : " + taskExpanded.size());
+            message.add(MessageBuilderMessage.INCORRECT_INDEX.getMessage());
+        } else {
+             SubTasksShell subtaskShell = new SubTasksShell(
+                    Integer.parseInt(command[1]),
+                    taskExpanded,
+                    scan,
+                    listName
+            );
+             subtaskShell.start();
+            super.taskExpanded = listFile.reload();
+        }
+    }
     /**
-     * Print the help String/
+     * Doesn't print directly the help String, but will add it to the MessageBuilder.
      */
-    private void printHelp(){
-        System.out.println(
+    protected void requestHelp(){
+        message.add(
                 """
                         add <description> ................. Create a new task.
                         delete <index> .................... Delete a task.
@@ -223,38 +217,21 @@ public class TasksShell {
     private void clear(String[] command){
         switch (command[1]) {
             case "done" -> {
-                tasks.removeIf(Task::isDone);
+                taskExpanded.removeIf(Task::isDone);
                 message.add("All done tasks were deleted.");
             }
             case "undone" -> {
-                tasks.removeIf(Predicate.not(Task::isDone));
+                taskExpanded.removeIf(Predicate.not(Task::isDone));
                 message.add("All undone tasks were deleted.");
             }
             default -> {
                 listFile.saveList(new ArrayList<>());
-                tasks = listFile.getTasks();
+                taskExpanded = listFile.reload();
                 message.add("All tasks have been deleted.");
             }
         }
     }
 
-    /**
-     * Because the user input is parsed using a String.split(" "),
-     * we need to reassemble the sentences inputted by the user.
-     * @param command This is the user input.
-     * @return the description of the task.
-     */
-    private String concatenateWordsFromArray(String[] command){
-        if (command[0].equals("modify")) {
-            command[1] = "";
-        }
-        command[0] = "";
-        StringBuilder bob = new StringBuilder();
-        for (String word : command){
-            bob.append(" ").append(word.replace("\"", ""));
-        }
-        return bob.toString().trim();
-    }
 
 
 

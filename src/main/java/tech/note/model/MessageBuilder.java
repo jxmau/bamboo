@@ -21,12 +21,17 @@ public class MessageBuilder {
         System.out.println(message);
     }
 
+    public void oneTimePrint() {
+        System.out.println(message);
+        reset();
+    }
+
     /**
      * Will delete all chars in the StringBuilder.
      * The length will be 1, and not 0.
      */
     public void reset(){
-        message.delete(0, message.length() - 1);
+        message.delete(0, message.length() == 0 ? 0 : message.length() - 1);
     }
 
     /**
@@ -53,4 +58,6 @@ public class MessageBuilder {
     public boolean isEmpty(){
         return message.toString().length() <= 1;
     }
+
+
 }
