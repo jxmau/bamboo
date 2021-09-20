@@ -1,15 +1,16 @@
 package tech.note.shell;
 
 import tech.note.file.ListFile;
-import tech.note.model.MessageBuilder;
-import tech.note.model.MessageBuilderMessage;
+import tech.note.tool.MessageBuilder;
+import tech.note.tool.MessageBuilderMessage;
 import tech.note.model.Task;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.function.Predicate;
 
-public class TasksShell extends BambooShell {
+final public class TasksShell extends BambooShell {
     /**
      * Name of the list of the task.
      * Used to get access to the list file.
@@ -36,6 +37,7 @@ public class TasksShell extends BambooShell {
      * message consists of an error message or other.
      */
     private final MessageBuilder message = new MessageBuilder();
+    private List<Task> taskExpanded;
 
 
 
@@ -45,13 +47,19 @@ public class TasksShell extends BambooShell {
         this.listName = listName;
         this.scan = scan;
         this.listFile = new ListFile(this.listName);
-        super.taskExpanded = listFile.reload();
+        this.taskExpanded = new ArrayList<>(listFile.reload());
+        super.taskExpandedSize = taskExpanded.size();
+    }
+
+    protected void actualizeExpandedFields(){
+        this.taskExpanded = listFile.reload();
+        super.taskExpandedSize = taskExpanded.size();
     }
 
     public void start(){
         while (!exit) {
             printList();
-            printMessage();
+            message.oneTimePrint();
             System.out.print(" " + listName + " > ");
             String[] command = scan.nextLine().split(" ");
             switch (command[0]){
@@ -75,7 +83,8 @@ public class TasksShell extends BambooShell {
      * Method to print the list of tasks. Two StringBuilder are used,
      * separating the done and undone tasks.
      */
-    private void printList(){
+    @Override
+    protected void printList(){
         StringBuilder tasksDone = new StringBuilder();
         StringBuilder tasksNotDone = new StringBuilder();
             for (Task task : taskExpanded) {
@@ -103,17 +112,6 @@ public class TasksShell extends BambooShell {
     }
 
 
-
-    /**
-     * Will print the message if not empty and reset it once printed.
-     */
-    private void printMessage(){
-        if (!message.isEmpty()) {
-            message.print();
-            message.reset();
-        }
-    }
-
     /**
      * This method will add a task to the list.
      * @param command is the command line from the user.
@@ -122,7 +120,7 @@ public class TasksShell extends BambooShell {
         if (command[1] != null) {
             taskExpanded.add(new Task(taskExpanded.size(), concatenateWordsFromArray(command, 1), false));
             listFile.saveList(taskExpanded);
-            taskExpanded = listFile.reload();
+            actualizeExpandedFields();
         } else {
             message.add(MessageBuilderMessage.NO_INDEX_FOUND.getMessage());
         }
@@ -138,6 +136,7 @@ public class TasksShell extends BambooShell {
     private void deleteTask(String[] command){
         if (checkIndexInCommand(command[1])) {
             taskExpanded.remove(Integer.parseInt(command[1]));
+            actualizeExpandedFields();
         } else {
             message.add(MessageBuilderMessage.NO_INDEX_FOUND.getMessage());
         }
@@ -187,7 +186,7 @@ public class TasksShell extends BambooShell {
                     listName
             );
              subtaskShell.start();
-            super.taskExpanded = listFile.reload();
+            actualizeExpandedFields();
         }
     }
     /**
@@ -215,6 +214,7 @@ public class TasksShell extends BambooShell {
      * By default, all tasks will be deleted.
      */
     private void clear(String[] command){
+
         switch (command[1]) {
             case "done" -> {
                 taskExpanded.removeIf(Task::isDone);
@@ -226,7 +226,7 @@ public class TasksShell extends BambooShell {
             }
             default -> {
                 listFile.saveList(new ArrayList<>());
-                taskExpanded = listFile.reload();
+                taskExpanded = new ArrayList<>(listFile.reload());
                 message.add("All tasks have been deleted.");
             }
         }

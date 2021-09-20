@@ -1,7 +1,8 @@
 package tech.note.shell;
 
 import tech.note.file.ListFile;
-import tech.note.model.MessageBuilder;
+import tech.note.model.BambooTask;
+import tech.note.tool.MessageBuilder;
 import tech.note.model.Task;
 
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.regex.Pattern;
 
 public abstract class BambooShell {
     protected final MessageBuilder message = new MessageBuilder();
-    protected List<Task> taskExpanded;
+    protected int taskExpandedSize;
     protected ListFile listFile;
     protected boolean exit = false;
 
@@ -24,7 +25,7 @@ public abstract class BambooShell {
     protected String formatIndex(int index){
         StringBuilder whiteSpace = new StringBuilder();
         whiteSpace.append(index);
-        while (whiteSpace.length() != Integer.toString(taskExpanded.size()).length() + 1) {
+        while (whiteSpace.length() != Integer.toString(taskExpandedSize).length() + 1) {
             whiteSpace.append(" ");
         }
         return whiteSpace.toString();
@@ -53,7 +54,7 @@ public abstract class BambooShell {
      * @return true if index a numeric String.
      */
     protected boolean checkIndexInCommand(String index){
-        return Pattern.compile("\\d+").matcher(index).matches() && Integer.parseInt(index) < taskExpanded.size();
+        return Pattern.compile("\\d+").matcher(index).matches() && Integer.parseInt(index) < taskExpandedSize;
     }
 
     /**
@@ -77,5 +78,16 @@ public abstract class BambooShell {
      * Will add the help String variable to the Message Builder.
      */
     abstract void requestHelp();
+
+    /**
+     * Print the list of tasksExpanded and can be used at the super level.
+     */
+    abstract void printList();
+
+    /**
+     * Super method to call when modifying the Collections object of the expanded BambooTask children object.
+     */
+    abstract void actualizeExpandedFields();
+
 
 }

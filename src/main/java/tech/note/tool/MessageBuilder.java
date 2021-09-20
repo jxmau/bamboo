@@ -1,4 +1,4 @@
-package tech.note.model;
+package tech.note.tool;
 
 public class MessageBuilder {
     private final StringBuilder message = new StringBuilder();

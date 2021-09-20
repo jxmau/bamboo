@@ -1,6 +1,6 @@
 import org.junit.Assert;
 import org.junit.Test;
-import tech.note.model.MessageBuilder;
+import tech.note.tool.MessageBuilder;
 
 public class MessageBuilderTest {
 

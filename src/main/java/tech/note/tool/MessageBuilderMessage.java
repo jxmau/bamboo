@@ -1,4 +1,4 @@
-package tech.note.model;
+package tech.note.tool;
 
 public enum MessageBuilderMessage {
     NO_INDEX_FOUND("No index found."),

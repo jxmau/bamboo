@@ -3,14 +3,11 @@ package tech.note.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-public class Task {
+public class Task extends BambooTask{
 
-    private String taskId;
-    private int order;
-    private String description;
-    private boolean done;
-    private List<Task> subtasks;
+    private List<Subtask> subtasks;
 
     public Task() {
     }
@@ -21,7 +18,7 @@ public class Task {
      * @param done Used to know if task is complete or not.
      */
     public Task(int order, String description, boolean done) {
-        this.taskId = "N/A";
+        this.id = "N/A";
         this.order = order;
         this.description = description;
         this.done = done;
@@ -30,68 +27,59 @@ public class Task {
 
     /**
      * Constructor Method used when parsing the JSON File.
-     * @param taskId to identify the task or the subtask in the db.
+     * @param id to identify the task or the subtask in the db.
      * @param order to differentiate tasks in list and in file.
      * @param description Used as the description of the task.
      * @param done Used to know if task is complete or not.
      * @param subtasks those are the subtask of the task.
      */
-    public Task(String taskId, int order, String description, boolean done, List<Task> subtasks) {
-        this.taskId = taskId;
+    public Task(String id, int order, String description, boolean done, List<Subtask> subtasks) {
+        this.id = id;
         this.order = order;
         this.description = description;
         this.done = done;
         this.subtasks = subtasks;
     }
 
-    public String getTaskId() {
-        return taskId;
-    }
 
-    public void setTaskId(String taskId) {
-        this.taskId = taskId;
-    }
-
-    public int getOrder() {
-        return order;
-    }
-
-    public void setOrder(int order) {
-        this.order = order;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public boolean isDone() {
-        return done;
-    }
-
-    public void setDone(boolean done) {
-        this.done = done;
-    }
-
-    public List<Task> getSubtasks() {
+    public List<Subtask> getSubtasks() {
         return subtasks;
     }
 
-    public void setSubtasks(List<Task> subtasks) {
+    public void setSubtasks(List<Subtask> subtasks) {
         this.subtasks = subtasks;
     }
 
     @Override
     public String toString() {
         return "Task{" +
-                "taskId=" + taskId +
+                "taskId=" + id +
                 ", order=" + order +
                 ", description='" + description + '\'' +
                 ", done=" + done +
                 ", subtasks=" + subtasks +
                 '}';
+    }
+
+    @Override
+    public String toMapString() {
+        return "{\"order\":\"" + order + "\"" +
+                ",\"taskId\":\""+ id + "\"" +
+                ",\"description\":\"" + description + "\"" +
+                ",\"done\":\"" + done + "\"" +
+                // As it an array, there's no need to put it in quote, but in squared brackets
+                ",\"subtasks\":\"" +concatSubtasksMapString() + "\"}";
+    }
+
+    private String concatSubtasksMapString(){
+        StringBuilder bobTheBuilder = new StringBuilder();
+        bobTheBuilder.append("[");
+        for (Subtask subtask : subtasks) {
+            bobTheBuilder
+                    .append(subtasks.indexOf(subtask) != 0 ? "," : "")
+                    .append(subtask.toMapString());
+        }
+        bobTheBuilder.append("]");
+        return bobTheBuilder.toString().replace("\"", "||");
     }
 }

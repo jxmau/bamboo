@@ -3,6 +3,8 @@ package tech.note.file;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import tech.note.model.BambooTask;
+import tech.note.model.Subtask;
 import tech.note.model.Task;
 
 import java.io.FileReader;
@@ -54,12 +56,12 @@ public class ListFile {
         }
     }
 
-    private List<Task> parseSubtasksList(String jsonString) throws ParseException {
+    private List<Subtask> parseSubtasksList(String jsonString) throws ParseException {
         List<Map<String, String>> subtasksListInMap = (List<Map<String, String>>) new JSONParser().parse(jsonString.replace("||", "\""));
-        List<Task> subtasks = new ArrayList<>();
+        List<Subtask> subtasks = new ArrayList<>();
         for (Map<String, String> subtaskMap : subtasksListInMap) {
             subtasks.add(
-                    new Task(
+                    new Subtask(
                             Integer.parseInt(subtaskMap.get("order")),
                             subtaskMap.get("description"),
                             subtaskMap.get("done").equals("true")
@@ -101,33 +103,10 @@ public class ListFile {
     private String tasksToJsonString(List<Task> tasks) {
         StringBuilder stringBuilder = new StringBuilder("[");
         for (Task task : tasks){
-            if (tasks.indexOf(task) != 0) {
-            stringBuilder.append(",");
-            }
-            stringBuilder.append(
-                    "{\"order\":\"" + task.getOrder() + "\"" +
-                            ",\"taskId\":\""+ task.getTaskId() + "\"" +
-                            ",\"description\":\"" + task.getDescription() + "\"" +
-                            ",\"done\":\"" + task.isDone() + "\"" +
-                            // As it an array, there's no need to put it in quote, but in squared brackets
-                            ",\"subtasks\":\"" + subtasksToJsonString(task.getSubtasks()) + "\"}"
-            );
-
+            stringBuilder
+                    .append(tasks.indexOf(task) != 0 ? "," : "")
+                    .append(task.toMapString());
         }
         return stringBuilder.append("]").toString();
-
-    }
-
-    private String subtasksToJsonString(List<Task> subtasks) {
-        StringBuilder stringBuilder = new StringBuilder("[");
-        for (Task subtask : subtasks){
-            stringBuilder.append(
-                    "{\"order\":\"" + subtask.getOrder() + "\"" +
-                            ",\"subtasksId\":\"" + subtask.getTaskId() + "\"" +
-                            ",\"description\":\"" + subtask.getDescription() + "\"" +
-                            ",\"done\":\"" + subtask.isDone() + "\"}"
-            );
-        }
-        return stringBuilder.append("]").toString().replace("\"", "||");
     }
 }

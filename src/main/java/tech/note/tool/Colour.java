@@ -1,4 +1,4 @@
-package tech.note.model;
+package tech.note.tool;
 
 public enum Colour {
     RED("\u001B[31m"),

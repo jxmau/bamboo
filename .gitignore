@@ -82,4 +82,4 @@ todo.vim
 **/META-INF/
 
 # Other
-DS_STORE
+.DS_STORE
