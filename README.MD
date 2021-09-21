@@ -41,6 +41,19 @@ Note : the tasks will have their index printed before them for you to select the
 | help | Will show all the commands.  |
 | exit | Will return to the main shell.  |
 
+### Subtask Shell
+
+| Command Line | Description |
+| --- | --- |
+| new < description > | Will create a new task. |
+| multi | Will allow you to add multiple subtask without the need to write the new keyword. |
+| delete < index > | Will delete the task. |
+| done/undone < index > | Will permute the status of the task. |
+| modify < index > < description > |  Will modify the description of the task. |
+| close | Will mark every subtask and the task as done and will exit the shell. |
+| help | Will show all the commands.  |
+| exit | Will return to the main shell.  |
+
 <h2> Road map </h2>
 
 * Code Maintainability 

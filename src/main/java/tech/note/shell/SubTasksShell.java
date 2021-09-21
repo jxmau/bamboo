@@ -59,6 +59,7 @@ final public class SubTasksShell extends BambooShell{
                 case "done", "undone" -> permute(command);
                 case "close" -> close();
                 case "exit" -> exit = true;
+                case "multi" -> multiShell();
                 case "help" -> requestHelp();
 
             }
@@ -186,12 +187,35 @@ final public class SubTasksShell extends BambooShell{
     }
 
     /**
+     * Allows the user to enter several Subtasks without entering the new keyword
+     */
+    //TODO change the name of this method
+    private void multiShell(){
+        boolean exitMulti = false;
+        message.add("When done, write exit.");
+        while (!exitMulti){
+            printList();
+            message.oneTimePrint();
+            String description = scanner.nextLine();
+            if (description.equals("exit")){
+                exitMulti = true;
+            } else if (description.equals("help")) {
+              message.add("To exit the Multi, write exit.");
+            } else {
+                taskExpanded.add(new Subtask(taskExpandedSize == 0 ? 0 : taskExpandedSize, description, false));
+            }
+        }
+    }
+
+    /**
      * Add the Help information to the MessageBuilder.
      */
     @Override
     protected void requestHelp() {
+        message.add("\n\n\n\n\n\n\n\n\n\n\n\n");
         message.add("""
                 new < description > .................... Will add a new subtask to the task.
+                multi .................................. Will allow you to add multiple subtask without the need to write the new keyword.
                 modify < index > < new description > ... Will modify the description of the selected subtask.
                 delete < index > ....................... Will delete the subtask.
                 done/undone < index > .................. Will permute the status of the subtask.
